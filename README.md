@@ -91,3 +91,84 @@ int main () {
 		cout << sum << endl;
 	}
 }
+vj春季第三次训练第C题
+题目大意：找到两棵树的最近公共祖先
+解题思路：利用倍增的思想，先将两个保持同一深度，然后在共同上有先找到有公共祖先，然后在向下寻找最近祖先
+#include <iostream>
+#include <cstring>
+#include <bits/stdc++.h>
+#include <algorithm>
+using namespace std;
+#define IOS ios::sync_with_stdio(false);cin.tie(nullptr);cout.tie(nullptr);
+const int maxn = 5e5 + 10;
+
+//创建结构体存储树
+struct z {
+    int t, nex;
+} e[maxn * 10];
+int head[maxn], cnt;
+
+//存储
+void add(int x, int y) {
+    e[++cnt].t = y;
+    e[cnt].nex = head[x];
+    head[x] = cnt;
+}
+int deep[maxn], up[maxn][20], lg[maxn];
+
+//通过dfs的找到每个节点的深度
+//利用倍增的思想将需要查找的两个节点向上寻找
+//从大到小的进行查找，因为任何一个数都能用2的I次方表示出来
+//从大到小的话就能准确的找到节点，如果从大到小进行，可能会出现悔棋的情况
+//例如5从大到小是5=4+1，而从小到大为5！=1 + 2+4，会出现回退的情况
+void dfs(int x, int y) {
+    up[x][0] = y;
+    deep[x] = deep[y] + 1;
+    for (int i = 1; i <= lg[deep[x]]; i++)
+        up[x][i] = up[up[x][i - 1]][i - 1];
+    for (int i = head[x]; i; i = e[i].nex)
+        if (e[i].t != y)
+            dfs(e[i].t, x);
+}
+
+int LCA(int x, int y) {
+    //同步深度
+    if (deep[x] < deep[y])
+        swap(x, y);//保持x为更深的一方
+    while (deep[x] > deep[y])
+        x = up[x][lg[deep[x] - deep[y]] - 1];
+    if (x == y)//特判无拐点的情况
+        return x;
+    //一起上游
+    for (int k = lg[deep[x]] - 1; k >= 0; --k)
+        if (up[x][k] != up[y][k])
+            x = up[x][k], y = up[y][k];
+    return up[x][0];
+}
+
+void test() {
+    int n, m, s;
+    cin >> n >> m >> s;
+    for (int i = 1; i <= n - 1; ++i) {
+        int x, y;
+        cin >> x >> y;
+        add(x, y);
+        add(y, x);
+    }
+    for (int i = 1; i <= n; ++i)
+        lg[i] = lg[i - 1] + (1 << lg[i - 1] == i);
+    dfs(s, 0);
+    for (int i = 1; i <= m; ++i) {
+        int x, y;
+        cin >> x >> y;
+        cout << LCA(x, y) << endl;
+    }
+}
+
+int main () {
+    IOS
+    int t = 1; //cin>>t;
+    while (t--) {
+        test();
+    }
+}
